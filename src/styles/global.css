@@ -417,6 +417,68 @@ button { font-family: inherit; }
   .scrollbar-thin::-webkit-scrollbar-thumb { background: var(--color-line); border-radius: 4px; }
   .scrollbar-thin::-webkit-scrollbar-thumb:hover { background: var(--color-mist); }
 
+  .scrollbar-none { scrollbar-width: none; -ms-overflow-style: none; }
+  .scrollbar-none::-webkit-scrollbar { display: none; }
+
+  /* Horizontal scroll row with edge-fade hint */
+  .scroll-row {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    padding: 4px 1px;
+  }
+  .scroll-row::-webkit-scrollbar { display: none; }
+  .scroll-row > * { scroll-snap-align: start; flex-shrink: 0; }
+
+  /* Mobile drawer */
+  #mobile-drawer { pointer-events: none; }
+  #mobile-drawer.is-open { pointer-events: auto; }
+  #mobile-drawer [data-drawer-backdrop] {
+    opacity: 0;
+    transition: opacity 0.2s var(--ease-out-quart);
+  }
+  #mobile-drawer.is-open [data-drawer-backdrop] { opacity: 1; }
+  #mobile-drawer [data-drawer-panel] {
+    transform: translateX(-100%);
+    transition: transform 0.28s var(--ease-out-quart);
+  }
+  #mobile-drawer.is-open [data-drawer-panel] { transform: translateX(0); }
+  #mobile-drawer[data-side="right"] [data-drawer-panel] {
+    transform: translateX(100%);
+    left: auto;
+    right: 0;
+  }
+  #mobile-drawer[data-side="right"].is-open [data-drawer-panel] { transform: translateX(0); }
+  body.drawer-open { overflow: hidden; }
+
+  /* Floating FAB */
+  .fab {
+    position: fixed;
+    bottom: 80px;
+    right: 18px;
+    z-index: 40;
+    border-radius: 999px;
+    box-shadow: var(--shadow-pop);
+    padding: 14px 20px;
+    font-weight: 600;
+    font-size: 14px;
+    background: var(--color-ink);
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s var(--ease-out-quart);
+  }
+  .fab-brand { background: var(--color-flow); }
+  .fab:active { transform: scale(0.96); }
+
+  /* Safe area for mobile bottom nav */
+  .pb-mobile-nav { padding-bottom: 72px; }
+  @media (min-width: 1024px) { .pb-mobile-nav { padding-bottom: 0; } }
+
   .gradient-ski { background: linear-gradient(135deg, #3b8fe2 0%, #0a1525 100%); }
   .gradient-surf { background: linear-gradient(135deg, #11b5c5 0%, #0a1525 100%); }
   .gradient-school { background: linear-gradient(135deg, #f5a524 0%, #c9224a 100%); }

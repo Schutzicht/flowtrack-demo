@@ -1,0 +1,92 @@
+---
+import Icon from './Icon.astro';
+import Logo from './Logo.astro';
+import Avatar from './Avatar.astro';
+import { branches, roles, buildUrl } from '../data/context';
+import type { AppContext } from '../data/context';
+
+interface Props { ctx: AppContext; current: string }
+const { ctx, current } = Astro.props;
+
+const navItems = [
+  { id: 'dashboard', label: 'Dashboard', icon: 'dashboard', href: '/dashboard' },
+  { id: 'reizen', label: 'Reizen', icon: 'trips', href: '/reizen' },
+  { id: 'pools', label: 'Pool Builder', icon: 'pools', href: '/pools' },
+  { id: 'deelnemers', label: 'Deelnemers', icon: 'users', href: '/deelnemers' },
+  { id: 'medewerkers', label: 'Medewerkers', icon: 'staff', href: '/medewerkers' },
+  { id: 'instellingen', label: 'Instellingen', icon: 'settings', href: '/instellingen' },
+] as const;
+
+const allowed = navItems.filter((n) => ctx.role.visibleNavItems.includes(n.id));
+const branchIconMap: Record<string, any> = {
+  surf: 'wave', ski: 'snowflake', school: 'school', corporate: 'briefcase',
+};
+---
+<div id="mobile-drawer" class="fixed inset-0 z-50 lg:hidden" aria-hidden="true">
+  <div data-drawer-backdrop class="absolute inset-0 bg-black/45 backdrop-blur-sm"></div>
+  <aside data-drawer-panel class="absolute inset-y-0 left-0 w-[290px] max-w-[85vw] bg-navy text-white flex flex-col overflow-y-auto scrollbar-thin">
+    <div class="flex items-center justify-between px-5 pt-5 pb-3">
+      <Logo variant="light" />
+      <button type="button" data-close-drawer class="btn-icon text-white/70" aria-label="Sluiten">
+        <Icon name="x" size={18} />
+      </button>
+    </div>
+
+    <div class="px-4 pt-2">
+      <div class="px-2 mb-2 text-[10px] uppercase tracking-[0.08em] text-white/35 font-semibold">Branche</div>
+      <div class="space-y-0.5">
+        {branches.map((b) => {
+          const active = b.id === ctx.branchId;
+          return (
+            <a href={buildUrl(`/${current}`, b.id, ctx.roleId)} class={`nav-item ${active ? 'is-active' : ''}`}>
+              <Icon name={branchIconMap[b.id]} size={16} stroke={1.7} class={active ? 'text-flow' : 'opacity-70'} />
+              <span class="flex-1 truncate">{b.name}</span>
+              {active && <span class="w-1.5 h-1.5 rounded-full bg-flow"></span>}
+            </a>
+          );
+        })}
+      </div>
+    </div>
+
+    <div class="px-4 pt-6">
+      <div class="px-2 mb-2 text-[10px] uppercase tracking-[0.08em] text-white/35 font-semibold">Menu</div>
+      <nav class="space-y-0.5">
+        {allowed.map((item) => {
+          const isActive = current === item.id;
+          return (
+            <a href={buildUrl(item.href, ctx.branchId, ctx.roleId)} class={`nav-item ${isActive ? 'is-active' : ''}`}>
+              <Icon name={item.icon} size={16} stroke={1.7} class={isActive ? '' : 'opacity-70'} />
+              <span class="flex-1">{item.label}</span>
+            </a>
+          );
+        })}
+      </nav>
+    </div>
+
+    <div class="px-4 pt-6 flex-1">
+      <div class="px-2 mb-2 text-[10px] uppercase tracking-[0.08em] text-white/35 font-semibold">Wissel rol</div>
+      <div class="space-y-1.5">
+        {roles.map((r) => {
+          const active = r.id === ctx.roleId;
+          return (
+            <a href={buildUrl(`/${current}`, ctx.branchId, r.id)} class={`flex items-center gap-2.5 p-2 rounded-lg ${active ? 'bg-white/[0.07]' : 'hover:bg-white/[0.04]'}`}>
+              <Avatar src={r.avatar} initials={r.initials} size="md" />
+              <div class="flex-1 min-w-0">
+                <div class="text-[12.5px] font-semibold truncate text-white">{r.name}</div>
+                <div class="text-[10.5px] text-white/55 truncate">{r.scope.split(' — ')[0]}</div>
+              </div>
+              {active && <span class="pill bg-flow text-white">actief</span>}
+            </a>
+          );
+        })}
+      </div>
+    </div>
+
+    <div class="p-4 border-t border-white/[0.06] mt-4">
+      <a href="/" class="flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-white/[0.04] text-white/75">
+        <Icon name="logout" size={15} />
+        <span class="text-[13px] font-medium">Uitloggen</span>
+      </a>
+    </div>
+  </aside>
+</div>

@@ -14,20 +14,22 @@ const notifications = [
   { tone: 'flow', title: 'Nieuwe boekingen', meta: 'gisteren', text: '3 inschrijvingen voor Algarve Surf Camp via partner-school' },
 ];
 const toneColor: Record<string, string> = {
-  flow: 'bg-flow',
-  warn: 'bg-warn',
-  go: 'bg-go',
-  no: 'bg-no',
+  flow: 'bg-flow', warn: 'bg-warn', go: 'bg-go', no: 'bg-no',
 };
 ---
-<header class="sticky top-0 z-20 bg-bg/85 backdrop-blur-md">
-  <div class="px-5 lg:px-10 pt-5 pb-4 flex items-center gap-4 border-b border-line">
+<header class="sticky top-0 z-20 bg-bg/90 backdrop-blur-md">
+  <div class="px-4 lg:px-10 pt-3.5 lg:pt-5 pb-3 lg:pb-4 flex items-center gap-3 border-b border-line">
+    {/* Mobile hamburger */}
+    <button type="button" data-open-drawer class="lg:hidden btn-icon -ml-1" aria-label="Menu openen">
+      <Icon name="menu" size={20} />
+    </button>
+
     <div class="flex-1 min-w-0">
-      {title && <h1 class="text-[22px] lg:text-[26px] font-display font-bold leading-tight tracking-tight truncate">{title}</h1>}
-      {subtitle && <p class="text-[12.5px] lg:text-[13px] text-ink-soft mt-0.5 truncate">{subtitle}</p>}
+      {title && <h1 class="text-[18px] lg:text-[26px] font-display font-bold leading-tight tracking-tight truncate">{title}</h1>}
+      {subtitle && <p class="text-[11.5px] lg:text-[13px] text-ink-soft mt-0.5 truncate">{subtitle}</p>}
     </div>
 
-    {/* Search */}
+    {/* Search — desktop only */}
     <div class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg border border-line bg-surface w-[280px] focus-within:border-flow focus-within:shadow-[0_0_0_3px_rgba(17,181,197,0.12)] transition-all">
       <Icon name="search" size={14} class="text-mist" />
       <input
@@ -42,11 +44,11 @@ const toneColor: Record<string, string> = {
 
     {/* Notifications */}
     <details class="dd relative">
-      <summary class="btn-icon relative">
+      <summary class="btn-icon relative" aria-label="Notificaties">
         <Icon name="bell" size={17} />
         <span class="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-coral"></span>
       </summary>
-      <div class="dd-menu right-0 w-[340px]">
+      <div class="dd-menu right-0 w-[300px] sm:w-[340px]">
         <div class="px-4 py-3 border-b border-line flex items-center justify-between">
           <span class="text-[13px] font-semibold">Notificaties</span>
           <button data-toast="Notificaties gemarkeerd als gelezen" class="text-[11.5px] text-flow font-medium hover:underline">Markeer als gelezen</button>
@@ -68,8 +70,8 @@ const toneColor: Record<string, string> = {
       </div>
     </details>
 
-    {/* Role switcher */}
-    <details class="dd relative">
+    {/* Role switcher — desktop only (mobile gebruikt drawer) */}
+    <details class="dd relative hidden md:block">
       <summary class="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-line-soft cursor-pointer">
         <Avatar src={ctx.role.avatar} initials={ctx.role.initials} size="lg" />
         <div class="hidden xl:block text-left">
@@ -78,7 +80,7 @@ const toneColor: Record<string, string> = {
         </div>
         <Icon name="chevron-down" size={14} class="text-mist hidden xl:block" />
       </summary>
-      <div class="dd-menu right-0 w-[340px]">
+      <div class="dd-menu right-0 w-[320px]">
         <div class="px-4 py-3 border-b border-line bg-bg-2">
           <div class="text-[10px] uppercase tracking-wide text-mist font-semibold">Wissel rol (demo)</div>
         </div>
@@ -107,10 +109,15 @@ const toneColor: Record<string, string> = {
         </div>
       </div>
     </details>
+
+    {/* Mobile role avatar (taps drawer) */}
+    <button type="button" data-open-drawer class="md:hidden -mr-1" aria-label="Rol wisselen">
+      <Avatar src={ctx.role.avatar} initials={ctx.role.initials} size="lg" />
+    </button>
   </div>
 </header>
 
-{/* Pre-existing modals shared across pages */}
+{/* Pre-existing modal shared across pages */}
 <dialog id="modal-new-trip" style="max-width:540px">
   <header class="px-5 py-4 border-b border-line flex items-start gap-3">
     <div class="flex-1">

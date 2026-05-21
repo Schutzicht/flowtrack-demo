@@ -31,6 +31,20 @@
     if (dlg && typeof dlg.close === 'function') dlg.close();
   };
 
+  // ---------- Drawer ----------
+  flow.openDrawer = function () {
+    const d = document.getElementById('mobile-drawer');
+    if (!d) return;
+    d.classList.add('is-open');
+    document.body.classList.add('drawer-open');
+  };
+  flow.closeDrawer = function () {
+    const d = document.getElementById('mobile-drawer');
+    if (!d) return;
+    d.classList.remove('is-open');
+    document.body.classList.remove('drawer-open');
+  };
+
   // ---------- Global delegation ----------
   document.addEventListener('click', (e) => {
     const open = e.target.closest('[data-modal]');
@@ -44,6 +58,18 @@
       e.preventDefault();
       const dlg = close.closest('dialog');
       if (dlg) dlg.close();
+      return;
+    }
+    const drawerOpen = e.target.closest('[data-open-drawer]');
+    if (drawerOpen) {
+      e.preventDefault();
+      flow.openDrawer();
+      return;
+    }
+    const drawerClose = e.target.closest('[data-close-drawer]') || (e.target.matches?.('[data-drawer-backdrop]') ? e.target : null);
+    if (drawerClose) {
+      e.preventDefault();
+      flow.closeDrawer();
       return;
     }
     const toastBtn = e.target.closest('[data-toast]');
@@ -117,6 +143,7 @@
       const dlg = document.querySelector('dialog[open]');
       if (dlg) dlg.close();
       document.querySelectorAll('details.dd[open]').forEach((d) => d.removeAttribute('open'));
+      flow.closeDrawer();
     }
   });
 

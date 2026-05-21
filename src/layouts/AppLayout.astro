@@ -2,6 +2,7 @@
 import Base from './Base.astro';
 import Sidebar from '../components/Sidebar.astro';
 import TopBar from '../components/TopBar.astro';
+import MobileDrawer from '../components/MobileDrawer.astro';
 import type { AppContext } from '../data/context';
 
 interface Props {
@@ -18,13 +19,15 @@ const { ctx, current, title, pageTitle, pageSubtitle } = Astro.props;
     <Sidebar ctx={ctx} current={current} />
     <div class="lg:pl-[260px] min-h-screen flex flex-col">
       <TopBar ctx={ctx} current={current} title={pageTitle} subtitle={pageSubtitle} />
-      <main class="flex-1 px-5 lg:px-10 py-6 lg:py-9 animate-fade-up">
+      <main class="flex-1 px-4 lg:px-10 py-5 lg:py-9 pb-mobile-nav animate-fade-up">
         <slot />
       </main>
     </div>
   </div>
 
-  <div id="toast-host" class="fixed bottom-6 right-6 z-[100] flex flex-col gap-2 pointer-events-none">
+  <MobileDrawer ctx={ctx} current={current} />
+
+  <div id="toast-host" class="fixed bottom-20 lg:bottom-6 right-4 lg:right-6 z-[100] flex flex-col gap-2 pointer-events-none">
   </div>
 
   <slot name="modals" />

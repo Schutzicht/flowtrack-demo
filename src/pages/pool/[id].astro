@@ -48,71 +48,81 @@ const canEdit = ctx.role.permissions.canEditPools;
   pageTitle={trip.title}
   pageSubtitle={`${trip.destination} · ${dateFmt(trip.start)} → ${dateFmt(trip.end)}`}
 >
-  <div class="space-y-5">
-    {/* Sticky toolbar */}
-    <div class="card p-3 flex flex-wrap items-center gap-2 sticky top-[78px] z-10">
-      <a href={buildUrl('/pools', ctx.branchId, ctx.roleId)} class="btn btn-icon" title="Terug">
-        <Icon name="arrow-right" size={15} class="rotate-180" />
-      </a>
+  <div class="space-y-4 lg:space-y-5">
+    {/* Sticky toolbar — horizontally scrollable on mobile */}
+    <div class="card p-2.5 lg:p-3 sticky top-[64px] lg:top-[78px] z-10">
+      <div class="flex items-center gap-2 overflow-x-auto scrollbar-none">
+        <a href={buildUrl('/pools', ctx.branchId, ctx.roleId)} class="btn btn-icon shrink-0" title="Terug">
+          <Icon name="arrow-right" size={15} class="rotate-180" />
+        </a>
 
-      {trip.branchId === 'ski' && (
-        <>
-          <select id="location-select" class="text-[13px] px-3 py-1.5 rounded-lg border border-line bg-surface font-medium cursor-pointer">
-            {winterLocations.map((l, i) => (
-              <option selected={i === 0}>{l.name} · {l.enrolled} kids</option>
-            ))}
-          </select>
-
-          {clusters.length > 0 && (
-            <div class="flex items-center gap-1 ml-1">
-              <button data-tab-group="cluster" data-tab="all" class="tab is-active">Alle clusters</button>
-              {clusters.map((c) => (
-                <button data-tab-group="cluster" data-tab={`cluster-${c}`} class="tab">{c}</button>
+        {trip.branchId === 'ski' && (
+          <>
+            <select id="location-select" class="shrink-0 text-[12.5px] px-2.5 py-1.5 rounded-lg border border-line bg-surface font-medium cursor-pointer max-w-[170px] truncate">
+              {winterLocations.map((l, i) => (
+                <option selected={i === 0}>{l.name} · {l.enrolled} kids</option>
               ))}
-            </div>
-          )}
-        </>
-      )}
+            </select>
 
-      <div class="flex-1"></div>
+            {clusters.length > 0 && (
+              <div class="flex items-center gap-1 ml-0.5 shrink-0">
+                <button data-tab-group="cluster" data-tab="all" class="tab is-active">Alle</button>
+                {clusters.map((c) => (
+                  <button data-tab-group="cluster" data-tab={`cluster-${c}`} class="tab">{c}</button>
+                ))}
+              </div>
+            )}
+          </>
+        )}
 
-      {canEdit && (
-        <>
-          <button data-modal="modal-monitor-portal" class="btn btn-ghost"><Icon name="qr" size={14} /> Monitor portaal</button>
-          <button id="btn-reset" class="btn btn-ghost"><Icon name="x" size={13} /> Reset</button>
-          <button id="btn-auto-assign" class="btn btn-brand"><Icon name="sparkles" size={14} /> <span>Auto-indelen</span></button>
-        </>
-      )}
+        <div class="flex-1 min-w-2"></div>
 
-      <div class="flex items-center gap-2 text-[12px] text-ink-soft pl-2 border-l border-line ml-1">
-        <span class="flex -space-x-1.5">
-          {presence.map((p) => (
-            <span class="ring-2 ring-surface rounded-full">
-              <Avatar src={p.avatar} initials={p.initials} size="sm" title={`${p.name} is online`} />
-            </span>
-          ))}
-        </span>
-        <span class="hidden lg:inline">2 online</span>
+        {canEdit && (
+          <>
+            <button data-modal="modal-monitor-portal" class="btn btn-ghost shrink-0 hidden sm:inline-flex"><Icon name="qr" size={14} /> <span class="hidden md:inline">Monitor portaal</span></button>
+            <button id="btn-reset" class="btn btn-ghost shrink-0 hidden sm:inline-flex"><Icon name="x" size={13} /> Reset</button>
+            <button id="btn-auto-assign" class="btn btn-brand shrink-0 hidden lg:inline-flex"><Icon name="sparkles" size={14} /> <span>Auto-indelen</span></button>
+          </>
+        )}
+
+        <div class="flex items-center gap-2 text-[12px] text-ink-soft pl-2 border-l border-line ml-1 shrink-0">
+          <span class="flex -space-x-1.5">
+            {presence.map((p) => (
+              <span class="ring-2 ring-surface rounded-full">
+                <Avatar src={p.avatar} initials={p.initials} size="sm" title={`${p.name} is online`} />
+              </span>
+            ))}
+          </span>
+          <span class="hidden xl:inline">2 online</span>
+        </div>
       </div>
     </div>
 
     {/* Live status banner */}
     {trip.branchId === 'ski' && (
-      <div class="rounded-2xl bg-navy text-white p-4 flex flex-wrap items-center gap-4 border border-navy-2">
-        <div class="flex items-center gap-2 text-[13px]">
+      <div class="rounded-2xl bg-navy text-white p-3.5 lg:p-4 flex flex-wrap items-center gap-3 lg:gap-4 border border-navy-2">
+        <div class="flex items-center gap-2 text-[12.5px] lg:text-[13px]">
           <span class="w-2 h-2 rounded-full bg-flow pulse-ring"></span>
           <strong>Dag 0</strong> · indeling 95% klaar
         </div>
         <div class="hidden md:block w-px h-5 bg-white/15"></div>
-        <div class="text-[12.5px] text-white/65 flex-1">Na dag 1 zijn nog max 5% verschuivingen verwacht. Wijzigingen syncen live met je team.</div>
-        <button data-toast="Historie geopend (mock)" class="text-[12px] text-flow hover:underline font-medium">Toon historie</button>
+        <div class="text-[12px] lg:text-[12.5px] text-white/65 flex-1 min-w-0">Na dag 1 zijn nog max 5% verschuivingen verwacht. Wijzigingen syncen live.</div>
+        <button data-toast="Historie geopend (mock)" class="text-[12px] text-flow hover:underline font-medium shrink-0">Toon historie</button>
+      </div>
+    )}
+
+    {/* Mobile-only quick actions row */}
+    {canEdit && (
+      <div class="lg:hidden flex gap-2">
+        <button data-modal="modal-monitor-portal" class="btn btn-ghost flex-1"><Icon name="qr" size={14} /> Monitor portaal</button>
+        <button id="btn-reset-mobile" class="btn btn-ghost"><Icon name="x" size={13} /></button>
       </div>
     )}
 
     {/* Builder grid */}
-    <div class="grid lg:grid-cols-[300px_1fr] gap-5" id="pool-builder">
-      {/* LEFT: Unassigned */}
-      <aside class="card p-4 h-fit lg:sticky lg:top-[170px] max-h-[calc(100vh-200px)] overflow-y-auto scrollbar-thin">
+    <div class="grid lg:grid-cols-[300px_1fr] gap-4 lg:gap-5" id="pool-builder">
+      {/* LEFT: Unassigned — collapsible on mobile */}
+      <aside class="card p-4 h-fit lg:sticky lg:top-[170px] max-h-[60vh] lg:max-h-[calc(100vh-200px)] overflow-y-auto scrollbar-thin">
         <div class="flex items-center justify-between mb-3">
           <h3 class="text-[14px] font-display font-bold">Nog in te delen</h3>
           <span id="unassigned-count" class="pill bg-warn/15 text-warn">{unassigned.length}</span>
@@ -291,6 +301,14 @@ const canEdit = ctx.role.permissions.canEditPools;
     </div>
   </div>
 
+  {/* Floating Auto-indelen FAB — mobile only */}
+  {canEdit && (
+    <button id="btn-auto-assign-fab" class="fab fab-brand lg:hidden" aria-label="Auto-indelen">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l1.8 5.2L19 9l-5.2 1.8L12 16l-1.8-5.2L5 9l5.2-1.8L12 2z"/></svg>
+      Auto-indelen
+    </button>
+  )}
+
   <Fragment slot="modals">
     {/* Monitor picker */}
     <dialog id="modal-pick-monitor">
@@ -466,28 +484,32 @@ const canEdit = ctx.role.permissions.canEditPools;
       };
       root.querySelectorAll('[data-drop-zone], [data-unassigned-pool]').forEach(bindZone);
 
-      // Reset
-      document.getElementById('btn-reset')?.addEventListener('click', () => {
+      // Reset (desktop + mobile)
+      const onReset = () => {
         if (!confirm('Alle handmatige verschuivingen ongedaan maken?')) return;
         location.reload();
-      });
+      };
+      document.getElementById('btn-reset')?.addEventListener('click', onReset);
+      document.getElementById('btn-reset-mobile')?.addEventListener('click', onReset);
 
-      // Auto-assign
+      // Auto-assign (desktop button + mobile FAB)
       const autoBtn = document.getElementById('btn-auto-assign');
-      autoBtn?.addEventListener('click', () => {
+      const autoFab = document.getElementById('btn-auto-assign-fab');
+      const autoTriggers = [autoBtn, autoFab].filter(Boolean);
+      const runAutoAssign = () => {
         const remaining = Array.from(root.querySelectorAll('[data-unassigned-pool] .participant-chip'));
         if (remaining.length === 0) {
           if (flow.toast) flow.toast('Iedereen is al ingedeeld');
           return;
         }
-        autoBtn.disabled = true;
-        const label = autoBtn.querySelector('span');
+        autoTriggers.forEach((b) => { b.disabled = true; });
+        const label = autoBtn?.querySelector('span');
         if (label) label.textContent = `Indelen 0/${remaining.length}`;
         let i = 0;
         let placed = 0;
         const step = () => {
           if (i >= remaining.length) {
-            autoBtn.disabled = false;
+            autoTriggers.forEach((b) => { b.disabled = false; });
             if (label) label.textContent = 'Auto-indelen';
             if (flow.toast) flow.toast(`${placed} deelnemers verdeeld over groepen`);
             return;
@@ -515,7 +537,8 @@ const canEdit = ctx.role.permissions.canEditPools;
           setTimeout(step, 28);
         };
         step();
-      });
+      };
+      autoTriggers.forEach((b) => b.addEventListener('click', runAutoAssign));
 
       // Filter level buttons
       root.querySelectorAll('.filter-btn').forEach((btn) => {
