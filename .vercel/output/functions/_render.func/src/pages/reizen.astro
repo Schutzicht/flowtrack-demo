@@ -1,0 +1,62 @@
+---
+import AppLayout from '../layouts/AppLayout.astro';
+import TripCard from '../components/TripCard.astro';
+import Icon from '../components/Icon.astro';
+import { getAppContext } from '../data/context';
+import { tripsForBranch } from '../data/trips';
+
+const ctx = getAppContext(Astro.url);
+const trips = tripsForBranch(ctx.branchId);
+const planned = trips.filter((t) => t.status === 'planned');
+const closed = trips.filter((t) => t.status === 'closed');
+---
+<AppLayout ctx={ctx} current="reizen" pageTitle="Reizen" pageSubtitle={`${trips.length} reizen voor ${ctx.branch.name}`}>
+  <div class="space-y-8">
+    <div class="flex flex-wrap items-center gap-2.5">
+      <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-line bg-surface text-sm text-ink-soft w-full max-w-[320px] focus-within:border-flow focus-within:shadow-[0_0_0_3px_rgba(17,181,197,0.12)] transition-all">
+        <Icon name="search" size={14} class="text-mist" />
+        <input type="text" placeholder="Zoek op naam of bestemming" class="bg-transparent outline-none flex-1 text-[13px]" data-filter-input="[data-filter-item]" />
+      </div>
+      <div class="flex items-center gap-1">
+        <button data-tab-group="trip-status" data-tab="all" class="tab is-active">Alle</button>
+        <button data-tab-group="trip-status" data-tab="planned" class="tab">Gepland</button>
+        <button data-tab-group="trip-status" data-tab="closed" class="tab">Afgesloten</button>
+      </div>
+      <div class="flex-1"></div>
+      <button data-toast="Filters geopend (mock)" class="btn btn-ghost"><Icon name="filter" size={14} /> Filter</button>
+      <button data-toast="Geexporteerd naar trips.csv" class="btn btn-ghost"><Icon name="arrow-down" size={14} /> Exporteer</button>
+      {ctx.role.permissions.canEditTrips && (
+        <button data-modal="modal-new-trip" class="btn btn-primary"><Icon name="plus" size={14} /> Nieuwe reis</button>
+      )}
+    </div>
+
+    <section data-tab-panel="all" data-tab-group="trip-status">
+      <h2 class="text-[12.5px] uppercase tracking-[0.08em] text-mist font-semibold mb-3">Gepland</h2>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
+        {planned.map((t) => <TripCard trip={t} branchId={ctx.branchId} roleId={ctx.roleId} />)}
+      </div>
+      {closed.length > 0 && (
+        <>
+          <h2 class="text-[12.5px] uppercase tracking-[0.08em] text-mist font-semibold mb-3">Afgesloten</h2>
+          <div class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {closed.map((t) => <TripCard trip={t} branchId={ctx.branchId} roleId={ctx.roleId} />)}
+          </div>
+        </>
+      )}
+    </section>
+
+    <section data-tab-panel="planned" data-tab-group="trip-status" style="display:none">
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {planned.map((t) => <TripCard trip={t} branchId={ctx.branchId} roleId={ctx.roleId} />)}
+      </div>
+    </section>
+
+    <section data-tab-panel="closed" data-tab-group="trip-status" style="display:none">
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {closed.length === 0 ? (
+          <div class="col-span-full text-center py-12 text-ink-soft text-[14px]">Geen afgesloten reizen.</div>
+        ) : closed.map((t) => <TripCard trip={t} branchId={ctx.branchId} roleId={ctx.roleId} />)}
+      </div>
+    </section>
+  </div>
+</AppLayout>
