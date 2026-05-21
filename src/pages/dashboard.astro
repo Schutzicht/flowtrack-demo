@@ -1,0 +1,380 @@
+---
+import AppLayout from '../layouts/AppLayout.astro';
+import StatCard from '../components/StatCard.astro';
+import TripCard from '../components/TripCard.astro';
+import BranchHero from '../components/BranchHero.astro';
+import Icon from '../components/Icon.astro';
+import Avatar from '../components/Avatar.astro';
+import { getAppContext, buildUrl, roles } from '../data/context';
+import { tripsForBranch, featuredTripForBranch, winterLocations } from '../data/trips';
+import { instructorsForBranch } from '../data/instructors';
+
+const ctx = getAppContext(Astro.url);
+const trips = tripsForBranch(ctx.branchId);
+const featured = featuredTripForBranch(ctx.branchId);
+const branchInstructors = instructorsForBranch(ctx.branchId);
+
+let stats = { primary: { label: '', value: '' }, secondary: { label: '', value: '' } };
+let alerts: { tone: string; text: string }[] = [];
+
+if (ctx.branchId === 'ski') {
+  stats = {
+    primary: { label: 'Deelnemers krokusweek', value: '522' },
+    secondary: { label: 'Locaties actief', value: '4' },
+  };
+  alerts = [
+    { tone: 'go', text: 'Cluster A & B Alpe d\'Huez: 95% ingedeeld, klaar voor dag 1' },
+    { tone: 'warn', text: 'Cluster C Red Racoons: 4 deelnemers nog ongekoppeld aan monitor' },
+    { tone: 'flow', text: 'Pre-trip enquête: 3 nieuwe antwoorden, niveaus bijgewerkt' },
+  ];
+}
+if (ctx.branchId === 'surf') {
+  stats = { primary: { label: 'Deelnemers zomer 2026', value: '56' }, secondary: { label: 'Geboekt vs cap', value: '74%' } };
+  alerts = [
+    { tone: 'warn', text: 'Algarve Camp: 6 plekken vrij, Pro Squad nog leeg' },
+    { tone: 'flow', text: 'Hossegor: 2 nieuwe inschrijvingen via partner-school' },
+  ];
+}
+if (ctx.branchId === 'school') {
+  stats = { primary: { label: 'Boekingen 25/26', value: '52' }, secondary: { label: 'Scholen', value: '7' } };
+  alerts = [
+    { tone: 'go', text: 'MBO Mendel: klassen ingedeeld, monitor briefing maandag' },
+    { tone: 'flow', text: 'VWO Stedelijk Texel: wacht op deelnemerslijst van school' },
+  ];
+}
+if (ctx.branchId === 'corporate') {
+  stats = { primary: { label: 'Offsites Q2 2026', value: '4' }, secondary: { label: 'Deelnemers ASML', value: '16' } };
+  alerts = [
+    { tone: 'go', text: 'ASML Surf & Strategy: catering en transfer bevestigd' },
+    { tone: 'warn', text: 'ABN AMRO Teamday: deelnemerslijst ontbreekt nog' },
+  ];
+}
+
+const role = ctx.role;
+const presence = roles.filter((r) => r.id === 'admin' || r.id === 'coordinator');
+const roleById = Object.fromEntries(roles.map((r) => [r.id, r]));
+
+const activity = [
+  { who: 'Arnout', roleId: 'coordinator', what: 'verschoof 4 deelnemers van Red Racoons C1 naar C2', when: '2 min geleden' },
+  { who: 'Lotte', roleId: 'admin', what: 'wees Erik Vogel toe als monitor aan Yellow E1', when: '14 min geleden' },
+  { who: 'Systeem', roleId: null, what: 'auto-clustering 522 deelnemers voltooid (cluster A-F)', when: '1 u geleden' },
+  { who: 'Stefan', roleId: 'instructor', what: 'bevestigde aanwezigheid via QR-scan voor 6 kids', when: '2 u geleden' },
+];
+---
+<AppLayout ctx={ctx} current="dashboard" pageTitle="Dashboard" pageSubtitle={`${ctx.branch.name} · ingelogd als ${role.name}`}>
+  <div class="space-y-7">
+    {/* Quick action row */}
+    <div class="flex flex-wrap items-center gap-2">
+      {role.permissions.canEditTrips && (
+        <button data-modal="modal-new-trip" class="btn btn-primary"><Icon name="plus" size={14} /> Nieuwe reis</button>
+      )}
+      {role.permissions.canEditPools && (
+        <button data-modal="modal-import" class="btn btn-ghost"><Icon name="arrow-down" size={14} /> Inschrijvingen importeren</button>
+      )}
+      {ctx.branchId === 'ski' && (role.id === 'admin' || role.id === 'coordinator') && (
+        <button data-modal="modal-survey" class="btn btn-ghost"><Icon name="sparkles" size={14} /> Pre-trip enquête tonen</button>
+      )}
+      <div class="flex-1"></div>
+      <span class="hidden md:flex items-center gap-2 text-[12px] text-ink-soft">
+        <span class="flex -space-x-1.5">
+          {presence.map((p) => (
+            <span class="ring-2 ring-bg rounded-full">
+              <Avatar src={p.avatar} initials={p.initials} size="sm" title={`${p.name} is online`} />
+            </span>
+          ))}
+        </span>
+        2 planners online
+      </span>
+    </div>
+
+    <BranchHero branch={ctx.branch} primaryStat={stats.primary} secondaryStat={stats.secondary} />
+
+    {/* Stats */}
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <StatCard label="Aankomende reizen" value={trips.filter(t => t.status === 'planned').length} hint="komende 6 maanden" />
+      <StatCard label="Open pools" value={trips.filter(t => t.status === 'planned').reduce((s, t) => s + t.poolIds.length, 0)} hint="alle reizen samen" />
+      <StatCard label={ctx.branchId === 'ski' ? 'Monitoren beschikbaar' : 'Instructeurs beschikbaar'} value={branchInstructors.filter(i => i.status === 'available').length} hint={`van ${branchInstructors.length} totaal`} />
+      {ctx.branchId === 'ski'
+        ? <StatCard label="Indelingsstatus" value={95} suffix="%" hint="na dag 1" trend={{ dir: 'up', value: '+12% wk' }} accent />
+        : <StatCard label="Capaciteitsalert" value={trips.filter(t => t.enrolled / t.capacity >= 0.9).length} hint="reizen >90% vol" />}
+    </div>
+
+    {/* Featured + side */}
+    {featured && (
+      <div class="grid lg:grid-cols-[1.45fr_1fr] gap-5">
+        <div class="card overflow-hidden">
+          <div class="grid lg:grid-cols-[1.2fr_1fr]">
+            <div class="p-6 lg:p-7">
+              <div class="flex items-start justify-between gap-3 mb-3">
+                <div>
+                  <div class="text-[11px] uppercase tracking-[0.08em] text-mist font-semibold">Hoofdactie</div>
+                  <h2 class="text-[22px] font-display font-bold mt-1 tracking-tight">{featured.title}</h2>
+                  <div class="text-[12.5px] text-ink-soft mt-0.5">{featured.destination} · {new Date(featured.start).toLocaleDateString('nl-NL', { day: '2-digit', month: 'long' })} → {new Date(featured.end).toLocaleDateString('nl-NL', { day: '2-digit', month: 'long' })}</div>
+                </div>
+                <span class="pill bg-flow text-white"><Icon name="sparkles" size={11} /> Pool Builder</span>
+              </div>
+
+              <p class="text-[13.5px] text-ink-soft leading-relaxed text-pretty max-w-xl">{featured.description}</p>
+
+              {ctx.branchId === 'ski' && (
+                <div class="mt-5">
+                  <div class="text-[11px] uppercase tracking-[0.08em] text-mist font-semibold mb-2">Locatie-overzicht</div>
+                  <div class="grid grid-cols-2 gap-2">
+                    {winterLocations.map((loc) => {
+                      const pct = Math.round((loc.enrolled / loc.capacity) * 100);
+                      const cls = pct >= 100 ? 'is-over' : pct >= 95 ? 'is-full' : '';
+                      return (
+                        <button data-toast={`Geopend: ${loc.name}`} class="rounded-lg border border-line p-2.5 bg-bg text-left hover:border-flow hover:bg-surface transition-all">
+                          <div class="flex items-center justify-between text-[12px] font-semibold">
+                            <span>{loc.name}</span>
+                            <span class="text-mist font-normal">{loc.enrolled}/{loc.capacity}</span>
+                          </div>
+                          <div class={`capacity-bar mt-2 ${cls}`}><span style={`width:${pct}%`}></span></div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              <div class="mt-6 flex flex-wrap items-center gap-2.5">
+                {role.permissions.canEditPools && (
+                  <a href={buildUrl(`/pool/${featured.id}`, ctx.branchId, ctx.roleId)} class="btn btn-primary">
+                    Open Pool Builder
+                    <Icon name="arrow-right" size={14} />
+                  </a>
+                )}
+                <a href={buildUrl(`/reizen`, ctx.branchId, ctx.roleId)} class="btn btn-ghost">Alle reizen</a>
+              </div>
+            </div>
+
+            <div class={`${featured.coverGradientClass} text-white p-6 lg:p-7 relative overflow-hidden`}>
+              <svg class="absolute inset-0 w-full h-full opacity-20" viewBox="0 0 400 300" preserveAspectRatio="none">
+                <path d="M0,200 Q100,140 200,200 T400,200" stroke="white" stroke-width="1.5" fill="none"/>
+                <path d="M0,240 Q100,180 200,240 T400,240" stroke="white" stroke-width="1" fill="none"/>
+              </svg>
+              <div class="relative">
+                <div class="text-[11px] uppercase tracking-[0.08em] text-white/70 font-semibold">Quick stats</div>
+                <div class="mt-4 space-y-5">
+                  <div>
+                    <div class="text-[42px] font-display font-bold leading-none tracking-tight" data-count={featured.enrolled}>0</div>
+                    <div class="text-[12px] text-white/65 mt-1.5">van {featured.capacity} ingeschreven</div>
+                  </div>
+                  <div class="grid grid-cols-2 gap-3">
+                    <div>
+                      <div class="text-[22px] font-display font-bold leading-none">{featured.poolIds.length}</div>
+                      <div class="text-[11px] text-white/65 mt-0.5">groepen</div>
+                    </div>
+                    <div>
+                      <div class="text-[22px] font-display font-bold leading-none">€{featured.basePrice}</div>
+                      <div class="text-[11px] text-white/65 mt-0.5">vanaf p.p.</div>
+                    </div>
+                  </div>
+                  {ctx.branchId === 'ski' && (
+                    <div class="pt-4 border-t border-white/15">
+                      <div class="text-[10.5px] uppercase tracking-[0.08em] text-white/55 font-semibold mb-2.5">Indeling-flow</div>
+                      <div class="space-y-1.5 text-[12px]">
+                        <div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-go"></span>Import 522 inschrijvingen <span class="text-white/45 ml-auto">vrijdag</span></div>
+                        <div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-go"></span>Auto-cluster A-F <span class="text-white/45 ml-auto">zaterdag</span></div>
+                        <div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-flow pulse-ring"></span>Subgroepen verfijnen <span class="text-white/45 ml-auto">nu</span></div>
+                        <div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-white/30"></span>QR badges + briefing <span class="text-white/45 ml-auto">zondag</span></div>
+                        <div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-white/30"></span>Live verschuiven dag 1-5 <span class="text-white/45 ml-auto">ma-vr</span></div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Activity + alerts side panel */}
+        <aside class="space-y-5">
+          <div class="card p-5">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-[14px] font-display font-bold">Actie nodig</h3>
+              <span class="pill bg-line-soft text-ink-soft">{alerts.length}</span>
+            </div>
+            <div class="space-y-3">
+              {alerts.map((a) => {
+                const dotColor = a.tone === 'go' ? 'bg-go' : a.tone === 'warn' ? 'bg-warn' : 'bg-flow';
+                return (
+                  <div class="flex items-start gap-2.5 text-[13px]">
+                    <span class={`mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 ${dotColor}`}></span>
+                    <span class="text-ink-soft leading-snug text-pretty">{a.text}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div class="card p-5">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-[14px] font-display font-bold">Activiteit</h3>
+              <button data-toast="Volledig activiteitenlog geopend" class="text-[11.5px] text-flow font-medium hover:underline">Alle</button>
+            </div>
+            <div class="space-y-3">
+              {activity.map((a) => {
+                const r = a.roleId ? roleById[a.roleId] : null;
+                return (
+                  <div class="flex items-start gap-2.5 text-[12.5px]">
+                    {r
+                      ? <Avatar src={r.avatar} initials={r.initials} size="sm" />
+                      : <span class="avatar bg-flow-soft text-flow-3">SY</span>}
+                    <div class="flex-1 min-w-0">
+                      <div class="leading-snug"><strong class="font-semibold">{a.who}</strong> <span class="text-ink-soft">{a.what}</span></div>
+                      <div class="text-[10.5px] text-mist mt-0.5">{a.when}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {role.id === 'instructor' && (
+            <div class="card p-5 bg-navy text-white border-navy">
+              <div class="flex items-center gap-2 text-[11px] uppercase tracking-[0.08em] text-flow font-semibold mb-2">
+                <Icon name="qr" size={13} /> Monitor portaal
+              </div>
+              <h3 class="text-[16px] font-display font-bold leading-tight">Open je groep met QR-scan</h3>
+              <p class="text-[12px] text-white/65 mt-1.5">Scan de polsbandjes bij de eerste lift en je deelnemers staan automatisch in je groep.</p>
+              <button data-modal="modal-qr" class="btn btn-brand mt-3 w-full">Scan starten</button>
+            </div>
+          )}
+        </aside>
+      </div>
+    )}
+
+    {/* Aankomende reizen */}
+    <div>
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-[17px] font-display font-bold tracking-tight">Aankomende reizen</h2>
+        <a href={buildUrl('/reizen', ctx.branchId, ctx.roleId)} class="text-[12.5px] text-flow font-semibold hover:underline">Alle reizen →</a>
+      </div>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {trips.filter(t => t.status === 'planned').slice(0, 4).map((t) => (
+          <TripCard trip={t} branchId={ctx.branchId} roleId={ctx.roleId} />
+        ))}
+      </div>
+    </div>
+
+    {/* Pre-trip enquête banner */}
+    {ctx.branchId === 'ski' && (role.id === 'admin' || role.id === 'coordinator') && (
+      <div class="card p-5 lg:p-6 flex flex-col sm:flex-row gap-4 sm:gap-6 items-start sm:items-center bg-gradient-to-r from-flow-soft to-bg">
+        <div class="w-11 h-11 rounded-xl bg-flow text-white flex items-center justify-center shrink-0">
+          <Icon name="sparkles" size={20} />
+        </div>
+        <div class="flex-1">
+          <h3 class="text-[15px] font-display font-bold tracking-tight">Pre-trip enquête als externe optimalisatie</h3>
+          <p class="text-[12.5px] text-ink-soft mt-1 max-w-2xl leading-snug text-pretty">Stuur 8 weken na boeking een korte enquête (5 vragen, ±2 min). Antwoorden vullen automatisch het niveau en voorkeuren in. Na dag 1 hoeft nog max 5% verschoven te worden in plaats van 30%.</p>
+        </div>
+        <button data-modal="modal-survey" class="btn btn-primary whitespace-nowrap">Enquête tonen</button>
+      </div>
+    )}
+  </div>
+
+  {/* Page-specific modals */}
+  <Fragment slot="modals">
+    {/* Import inschrijvingen */}
+    <dialog id="modal-import">
+      <header class="px-5 py-4 border-b border-line flex items-start gap-3">
+        <div class="flex-1">
+          <h3 class="text-[17px] font-display font-bold">Inschrijvingen importeren</h3>
+          <p class="text-[12.5px] text-ink-soft mt-0.5">Sleep een CSV of plak de regels uit Excel.</p>
+        </div>
+        <button type="button" data-close-modal class="btn-icon" aria-label="Sluiten"><Icon name="x" size={16} /></button>
+      </header>
+      <form data-demo-form="522 deelnemers ingelezen. Klaar voor auto-cluster." class="px-5 py-5 space-y-4">
+        <div class="border-2 border-dashed border-line rounded-xl p-8 text-center hover:border-flow hover:bg-flow-soft/30 transition-all cursor-pointer">
+          <div class="w-12 h-12 rounded-xl bg-flow-soft text-flow-3 flex items-center justify-center mx-auto mb-3">
+            <Icon name="arrow-down" size={20} />
+          </div>
+          <div class="text-[14px] font-semibold">Sleep CSV hierheen</div>
+          <div class="text-[12px] text-ink-soft mt-1">Of klik om een bestand te kiezen — max 5 MB</div>
+        </div>
+        <div class="relative">
+          <span class="absolute inset-0 flex items-center"><span class="w-full border-t border-line"></span></span>
+          <span class="relative flex justify-center text-[11px] uppercase tracking-[0.08em] text-mist bg-surface px-2 mx-auto w-max">of plak hier</span>
+        </div>
+        <textarea class="input font-mono text-[12px]" rows="5" placeholder="naam,leeftijd,niveau,voorkeur&#10;Sem Jansen,9,red_racoons,Mila Bos&#10;..."></textarea>
+        <footer class="flex items-center justify-end gap-2 pt-2 -mx-5 -mb-5 px-5 py-4 bg-bg-2 border-t border-line rounded-b-[18px]">
+          <button type="button" data-close-modal class="btn btn-ghost">Annuleren</button>
+          <button type="submit" class="btn btn-primary">Verwerk import</button>
+        </footer>
+      </form>
+    </dialog>
+
+    {/* Survey */}
+    <dialog id="modal-survey">
+      <header class="px-5 py-4 border-b border-line flex items-start gap-3">
+        <div class="flex-1">
+          <h3 class="text-[17px] font-display font-bold">Pre-trip enquête — 5 vragen</h3>
+          <p class="text-[12.5px] text-ink-soft mt-0.5">Verstuurd 8 weken na boeking. Antwoorden vullen automatisch het profiel.</p>
+        </div>
+        <button type="button" data-close-modal class="btn-icon" aria-label="Sluiten"><Icon name="x" size={16} /></button>
+      </header>
+      <div class="px-5 py-5 space-y-4 max-h-[60vh] overflow-y-auto scrollbar-thin">
+        <div>
+          <div class="text-[11px] uppercase tracking-[0.08em] text-mist font-semibold mb-2">Vraag 1 van 5</div>
+          <div class="text-[14px] font-semibold mb-3">Heeft je kind eerder geskied?</div>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="flex items-center gap-2 p-3 rounded-lg border border-line cursor-pointer hover:border-flow"><input type="radio" name="q1" /> Nee, helemaal nieuw</label>
+            <label class="flex items-center gap-2 p-3 rounded-lg border border-line cursor-pointer hover:border-flow"><input type="radio" name="q1" /> 1-2 keer eerder</label>
+            <label class="flex items-center gap-2 p-3 rounded-lg border border-line cursor-pointer hover:border-flow"><input type="radio" name="q1" /> 3-5 keer</label>
+            <label class="flex items-center gap-2 p-3 rounded-lg border border-line cursor-pointer hover:border-flow"><input type="radio" name="q1" /> Meer dan 5 keer</label>
+          </div>
+        </div>
+        <div>
+          <div class="text-[14px] font-semibold mb-3">Kan je kind een blauwe piste skien?</div>
+          <div class="grid grid-cols-3 gap-2">
+            <label class="flex items-center gap-2 p-3 rounded-lg border border-line cursor-pointer hover:border-flow text-[13px]"><input type="radio" name="q2" /> Ja</label>
+            <label class="flex items-center gap-2 p-3 rounded-lg border border-line cursor-pointer hover:border-flow text-[13px]"><input type="radio" name="q2" /> Met begeleiding</label>
+            <label class="flex items-center gap-2 p-3 rounded-lg border border-line cursor-pointer hover:border-flow text-[13px]"><input type="radio" name="q2" /> Nee</label>
+          </div>
+        </div>
+        <div>
+          <div class="text-[14px] font-semibold mb-2">Met wie wil je kind samen in de groep?</div>
+          <input class="input" placeholder="Bv. Mila Bos, Sven Verhoeven" />
+        </div>
+      </div>
+      <footer class="flex items-center justify-between gap-2 px-5 py-4 bg-bg-2 border-t border-line rounded-b-[18px]">
+        <span class="text-[12px] text-ink-soft">Wordt automatisch verstuurd via Booking Experts</span>
+        <button type="button" data-close-modal class="btn btn-primary">Sluiten</button>
+      </footer>
+    </dialog>
+
+    {/* QR scanner */}
+    <dialog id="modal-qr">
+      <header class="px-5 py-4 border-b border-line flex items-start gap-3">
+        <div class="flex-1">
+          <h3 class="text-[17px] font-display font-bold">QR-scan monitor portaal</h3>
+          <p class="text-[12.5px] text-ink-soft mt-0.5">Scan de polsbandjes bij de eerste lift.</p>
+        </div>
+        <button type="button" data-close-modal class="btn-icon" aria-label="Sluiten"><Icon name="x" size={16} /></button>
+      </header>
+      <div class="px-5 py-5">
+        <div class="rounded-xl bg-navy text-white p-6 text-center">
+          <div class="w-32 h-32 mx-auto rounded-xl bg-white text-navy flex items-center justify-center">
+            <Icon name="qr" size={64} stroke={1.5} />
+          </div>
+          <div class="mt-4 text-[13px] font-mono text-flow">Wachten op scan...</div>
+          <div class="text-[12px] text-white/55 mt-1">Houd het bandje van de deelnemer voor de camera</div>
+        </div>
+        <div class="mt-4 grid grid-cols-3 gap-2 text-center">
+          <div class="rounded-lg border border-line p-3">
+            <div class="text-[18px] font-display font-bold">6</div>
+            <div class="text-[10.5px] text-ink-soft mt-0.5">gescand</div>
+          </div>
+          <div class="rounded-lg border border-line p-3">
+            <div class="text-[18px] font-display font-bold">7</div>
+            <div class="text-[10.5px] text-ink-soft mt-0.5">in groep</div>
+          </div>
+          <div class="rounded-lg border border-line p-3">
+            <div class="text-[18px] font-display font-bold text-warn">1</div>
+            <div class="text-[10.5px] text-ink-soft mt-0.5">nog te scannen</div>
+          </div>
+        </div>
+      </div>
+    </dialog>
+  </Fragment>
+</AppLayout>

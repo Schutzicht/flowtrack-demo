@@ -1,0 +1,8 @@
+node_modules
+dist
+.astro
+.DS_Store
+*.log
+
+# Original WP-export folder with messy filename
+public/www.flowtrack-travel.com_*

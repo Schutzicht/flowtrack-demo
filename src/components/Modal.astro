@@ -1,0 +1,21 @@
+---
+import Icon from './Icon.astro';
+interface Props { id: string; title: string; subtitle?: string; size?: 'sm' | 'md' | 'lg' }
+const { id, title, subtitle, size = 'md' } = Astro.props;
+const maxW = size === 'lg' ? '720px' : size === 'sm' ? '420px' : '540px';
+---
+<dialog id={id} style={`max-width:${maxW}`}>
+  <header class="px-5 py-4 border-b border-line flex items-start gap-3">
+    <div class="flex-1 min-w-0">
+      <h3 class="text-[17px] font-display font-bold leading-snug">{title}</h3>
+      {subtitle && <p class="text-[12.5px] text-ink-soft mt-0.5">{subtitle}</p>}
+    </div>
+    <button type="button" data-close-modal aria-label="Sluiten" class="btn-icon">
+      <Icon name="x" size={16} />
+    </button>
+  </header>
+  <div class="px-5 py-5">
+    <slot />
+  </div>
+  <slot name="footer" />
+</dialog>

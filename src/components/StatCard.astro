@@ -1,0 +1,33 @@
+---
+interface Props {
+  label: string;
+  value: string | number;
+  hint?: string;
+  trend?: { dir: 'up' | 'down' | 'flat'; value: string };
+  animated?: boolean;
+  prefix?: string;
+  suffix?: string;
+  accent?: boolean;
+}
+const { label, value, hint, trend, animated = true, prefix = '', suffix = '', accent = false } = Astro.props;
+const trendColor = trend?.dir === 'up' ? 'text-go' : trend?.dir === 'down' ? 'text-no' : 'text-mist';
+const trendArrow = trend?.dir === 'up' ? '↑' : trend?.dir === 'down' ? '↓' : '→';
+const isNumeric = animated && typeof value === 'number';
+---
+<div class={`card p-5 relative overflow-hidden group hover:shadow-md transition-shadow ${accent ? 'bg-ink text-white border-ink' : ''}`}>
+  {accent && (
+    <div class="absolute inset-0 opacity-30 gradient-mesh pointer-events-none"></div>
+  )}
+  <div class="relative">
+    <div class={`text-[11px] uppercase tracking-[0.06em] font-semibold ${accent ? 'text-white/50' : 'text-mist'}`}>{label}</div>
+    <div class="mt-2.5 flex items-baseline gap-2">
+      {isNumeric ? (
+        <div class="text-[32px] lg:text-[36px] font-display font-bold leading-none tracking-tight" data-count={value} data-count-prefix={prefix} data-count-suffix={suffix}>{prefix}0{suffix}</div>
+      ) : (
+        <div class="text-[32px] lg:text-[36px] font-display font-bold leading-none tracking-tight">{prefix}{value}{suffix}</div>
+      )}
+      {trend && <span class={`text-[12px] font-semibold ${trendColor}`}>{trendArrow} {trend.value}</span>}
+    </div>
+    {hint && <div class={`mt-2 text-[12px] ${accent ? 'text-white/60' : 'text-ink-soft'}`}>{hint}</div>}
+  </div>
+</div>

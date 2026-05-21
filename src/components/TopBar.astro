@@ -1,0 +1,167 @@
+---
+import Icon from './Icon.astro';
+import Avatar from './Avatar.astro';
+import { roles, buildUrl } from '../data/context';
+import type { AppContext } from '../data/context';
+
+interface Props { ctx: AppContext; current: string; title?: string; subtitle?: string }
+const { ctx, current, title, subtitle } = Astro.props;
+
+const notifications = [
+  { tone: 'flow', title: 'Auto-indeling gestart', meta: '2 minuten geleden', text: 'Arnout liet 18 Red Racoons automatisch verdelen over C1-C3' },
+  { tone: 'warn', title: 'Monitor ontbreekt', meta: '17:42', text: 'Pool Blue Bunnies B3 in Alpe d\'Huez heeft nog geen monitor' },
+  { tone: 'go', title: 'Pre-trip enquête', meta: 'vanmorgen', text: '12 nieuwe antwoorden binnen, niveaus automatisch bijgewerkt' },
+  { tone: 'flow', title: 'Nieuwe boekingen', meta: 'gisteren', text: '3 inschrijvingen voor Algarve Surf Camp via partner-school' },
+];
+const toneColor: Record<string, string> = {
+  flow: 'bg-flow',
+  warn: 'bg-warn',
+  go: 'bg-go',
+  no: 'bg-no',
+};
+---
+<header class="sticky top-0 z-20 bg-bg/85 backdrop-blur-md">
+  <div class="px-5 lg:px-10 pt-5 pb-4 flex items-center gap-4 border-b border-line">
+    <div class="flex-1 min-w-0">
+      {title && <h1 class="text-[22px] lg:text-[26px] font-display font-bold leading-tight tracking-tight truncate">{title}</h1>}
+      {subtitle && <p class="text-[12.5px] lg:text-[13px] text-ink-soft mt-0.5 truncate">{subtitle}</p>}
+    </div>
+
+    {/* Search */}
+    <div class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg border border-line bg-surface w-[280px] focus-within:border-flow focus-within:shadow-[0_0_0_3px_rgba(17,181,197,0.12)] transition-all">
+      <Icon name="search" size={14} class="text-mist" />
+      <input
+        type="text"
+        placeholder="Zoek deelnemer of reis"
+        class="bg-transparent outline-none flex-1 text-[13px]"
+        data-global-search
+        data-filter-input="[data-filter-item]"
+      />
+      <kbd class="hidden lg:inline text-[10px] px-1.5 py-0.5 rounded bg-line-soft text-mist font-mono">⌘K</kbd>
+    </div>
+
+    {/* Notifications */}
+    <details class="dd relative">
+      <summary class="btn-icon relative">
+        <Icon name="bell" size={17} />
+        <span class="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-coral"></span>
+      </summary>
+      <div class="dd-menu right-0 w-[340px]">
+        <div class="px-4 py-3 border-b border-line flex items-center justify-between">
+          <span class="text-[13px] font-semibold">Notificaties</span>
+          <button data-toast="Notificaties gemarkeerd als gelezen" class="text-[11.5px] text-flow font-medium hover:underline">Markeer als gelezen</button>
+        </div>
+        <div class="max-h-[360px] overflow-y-auto scrollbar-thin">
+          {notifications.map((n) => (
+            <button class="w-full px-4 py-3 flex items-start gap-3 hover:bg-line-soft text-left border-b border-line-soft last:border-0">
+              <span class={`mt-1 w-2 h-2 rounded-full shrink-0 ${toneColor[n.tone]}`}></span>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-[13px] font-semibold truncate">{n.title}</span>
+                  <span class="text-[10.5px] text-mist shrink-0">{n.meta}</span>
+                </div>
+                <p class="text-[12px] text-ink-soft leading-snug mt-0.5">{n.text}</p>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+    </details>
+
+    {/* Role switcher */}
+    <details class="dd relative">
+      <summary class="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-line-soft cursor-pointer">
+        <Avatar src={ctx.role.avatar} initials={ctx.role.initials} size="lg" />
+        <div class="hidden xl:block text-left">
+          <div class="text-[12.5px] font-semibold leading-tight">{ctx.role.name}</div>
+          <div class="text-[10.5px] text-ink-soft leading-tight">{ctx.role.scope.split(' — ')[0]}</div>
+        </div>
+        <Icon name="chevron-down" size={14} class="text-mist hidden xl:block" />
+      </summary>
+      <div class="dd-menu right-0 w-[340px]">
+        <div class="px-4 py-3 border-b border-line bg-bg-2">
+          <div class="text-[10px] uppercase tracking-wide text-mist font-semibold">Wissel rol (demo)</div>
+        </div>
+        <div class="p-1.5">
+          {roles.map((r) => (
+            <a
+              href={buildUrl(`/${current}`, ctx.branchId, r.id)}
+              class={`flex items-start gap-3 p-2.5 rounded-lg hover:bg-line-soft transition-colors ${r.id === ctx.roleId ? 'bg-line-soft' : ''}`}
+            >
+              <Avatar src={r.avatar} initials={r.initials} size="lg" />
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2">
+                  <span class="text-[13px] font-semibold">{r.name}</span>
+                  {r.id === ctx.roleId && <span class="pill bg-flow text-white">actief</span>}
+                </div>
+                <div class="text-[11.5px] text-ink-soft leading-snug">{r.scope}</div>
+              </div>
+            </a>
+          ))}
+        </div>
+        <div class="border-t border-line p-2">
+          <a href="/" class="dd-item rounded-lg">
+            <Icon name="logout" size={14} class="text-mist" />
+            <span>Uitloggen</span>
+          </a>
+        </div>
+      </div>
+    </details>
+  </div>
+</header>
+
+{/* Pre-existing modals shared across pages */}
+<dialog id="modal-new-trip" style="max-width:540px">
+  <header class="px-5 py-4 border-b border-line flex items-start gap-3">
+    <div class="flex-1">
+      <h3 class="text-[17px] font-display font-bold">Nieuwe reis aanmaken</h3>
+      <p class="text-[12.5px] text-ink-soft mt-0.5">Vul de basisinfo in. Pools voeg je later toe via de Pool Builder.</p>
+    </div>
+    <button type="button" data-close-modal aria-label="Sluiten" class="btn-icon"><Icon name="x" size={16} /></button>
+  </header>
+  <form data-demo-form="Reis aangemaakt — open Pool Builder om groepen toe te voegen" class="px-5 py-5 space-y-4">
+    <div>
+      <label class="field-label">Reisnaam</label>
+      <input class="input" placeholder="bv. Algarve Surf Camp 16+" required />
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="field-label">Branche</label>
+        <select class="input" required>
+          <option value="ski">Ski & Snowboard</option>
+          <option value="surf">Surf & Beach</option>
+          <option value="school">Schoolreizen</option>
+          <option value="corporate">Corporate & Teams</option>
+        </select>
+      </div>
+      <div>
+        <label class="field-label">Bestemming</label>
+        <input class="input" placeholder="Bv. Aljezur, Portugal" required />
+      </div>
+      <div>
+        <label class="field-label">Startdatum</label>
+        <input type="date" class="input" required />
+      </div>
+      <div>
+        <label class="field-label">Einddatum</label>
+        <input type="date" class="input" required />
+      </div>
+      <div>
+        <label class="field-label">Capaciteit</label>
+        <input type="number" class="input" placeholder="32" min="1" required />
+      </div>
+      <div>
+        <label class="field-label">Prijs vanaf</label>
+        <input type="number" class="input" placeholder="695" min="0" required />
+      </div>
+    </div>
+    <div>
+      <label class="field-label">Beschrijving</label>
+      <textarea class="input" rows="3" placeholder="Korte omschrijving voor je team"></textarea>
+    </div>
+    <footer class="flex items-center justify-end gap-2 pt-2 -mx-5 -mb-5 px-5 py-4 bg-bg-2 border-t border-line rounded-b-[18px]">
+      <button type="button" data-close-modal class="btn btn-ghost">Annuleren</button>
+      <button type="submit" class="btn btn-primary">Reis aanmaken</button>
+    </footer>
+  </form>
+</dialog>

@@ -1,0 +1,76 @@
+---
+import Icon from './Icon.astro';
+import type { Branch } from '../data/types';
+
+interface Props {
+  branch: Branch;
+  primaryStat: { label: string; value: string };
+  secondaryStat: { label: string; value: string };
+}
+const { branch, primaryStat, secondaryStat } = Astro.props;
+
+const tagByBranch: Record<string, { tag: string; sub: string; photo?: string }> = {
+  ski: { tag: 'Winterseizoen · krokus & paas 2026', sub: 'Multi-locatie indeling op niveau, leeftijd en voorkeur', photo: '/photos/ski-krokus.webp' },
+  surf: { tag: 'Zomerseizoen · juli – september 2026', sub: 'Atlantische camps voor 13+ en 16+', photo: '/photos/surf-camp.webp' },
+  school: { tag: 'Schooljaar · 25/26', sub: 'Klassen indelen over outdoor-activiteiten' },
+  corporate: { tag: 'Doorlopend · Q2 2026 actief', sub: 'Teambuilding-pods op rol en ervaring' },
+};
+const t = tagByBranch[branch.id];
+---
+<div class="card relative overflow-hidden">
+  <div class={`${branch.gradient} text-white p-6 lg:p-8 relative overflow-hidden`}>
+    {t.photo && (
+      <div class="absolute inset-0">
+        <img src={t.photo} alt="" class="w-full h-full object-cover opacity-40" loading="eager" />
+        <div class="absolute inset-0" style={`background:linear-gradient(110deg, ${branch.id === 'ski' ? 'rgba(10,21,37,0.92) 0%, rgba(59,143,226,0.5) 60%, rgba(10,21,37,0.55) 100%' : 'rgba(10,21,37,0.85) 0%, rgba(17,181,197,0.4) 70%, rgba(10,21,37,0.5) 100%'})`}></div>
+      </div>
+    )}
+
+    <svg class="absolute -right-12 -top-12 opacity-[0.10] pointer-events-none" width="380" height="380" viewBox="0 0 200 200" fill="none">
+      {branch.id === 'surf' && (
+        <g stroke="white" stroke-width="2" fill="none">
+          <path d="M-10,130 C30,90 60,150 100,130 C140,110 160,150 210,130"/>
+          <path d="M-10,150 C30,110 60,170 100,150 C140,130 160,170 210,150" opacity="0.7"/>
+        </g>
+      )}
+      {branch.id === 'ski' && (
+        <g stroke="white" stroke-width="1.6" fill="none">
+          <path d="M30,150 L100,40 L170,150 Z"/>
+          <path d="M70,150 L100,90 L130,150"/>
+          <circle cx="100" cy="50" r="3" fill="white"/>
+        </g>
+      )}
+      {branch.id === 'school' && (
+        <g stroke="white" stroke-width="1.5" fill="none">
+          <circle cx="100" cy="100" r="70"/><circle cx="100" cy="100" r="48"/><circle cx="100" cy="100" r="26"/>
+        </g>
+      )}
+      {branch.id === 'corporate' && (
+        <g stroke="white" stroke-width="1.5" fill="none">
+          <rect x="40" y="40" width="120" height="120" rx="14"/>
+          <path d="M70 80h60M70 100h60M70 120h40"/>
+        </g>
+      )}
+    </svg>
+
+    <div class="relative max-w-3xl">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.14] backdrop-blur text-[11px] font-medium mb-4 border border-white/15">
+        <span class="w-1.5 h-1.5 rounded-full bg-flow pulse-ring"></span>
+        {t.tag}
+      </div>
+      <h1 class="text-[28px] lg:text-[40px] font-display font-bold leading-[1.05] tracking-tight text-balance drop-shadow-sm">{branch.name}</h1>
+      <p class="text-white/80 mt-2 text-[14.5px] max-w-2xl text-pretty">{t.sub}</p>
+
+      <div class="mt-7 grid grid-cols-2 gap-6 max-w-lg">
+        <div>
+          <div class="text-[34px] lg:text-[44px] font-display font-bold leading-none tracking-tight drop-shadow-sm" data-count={primaryStat.value.replace(/[^0-9]/g, '')}>{primaryStat.value}</div>
+          <div class="text-[12px] text-white/70 mt-1.5">{primaryStat.label}</div>
+        </div>
+        <div>
+          <div class="text-[34px] lg:text-[44px] font-display font-bold leading-none tracking-tight drop-shadow-sm">{secondaryStat.value}</div>
+          <div class="text-[12px] text-white/70 mt-1.5">{secondaryStat.label}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,30 @@
+---
+import Icon from './Icon.astro';
+import type { Participant } from '../data/types';
+interface Props { p: Participant; levelSwatch: string; levelShort: string; draggable?: boolean; showMedical?: boolean; size?: 'sm' | 'md' }
+const { p, levelSwatch, levelShort, draggable = true, showMedical = false, size = 'md' } = Astro.props;
+const hasPref = !!p.preferences?.length;
+---
+<div
+  class="participant-chip"
+  data-pid={p.id}
+  data-level={p.level}
+  data-age={p.age}
+  data-filter-item
+  data-filter-text={`${p.name} ${p.level} ${p.age}`.toLowerCase()}
+  draggable={draggable ? 'true' : 'false'}
+>
+  <span class="avatar shrink-0" style={`background:${levelSwatch}1A; color:${levelSwatch}`}>{p.initials}</span>
+  <div class="flex-1 min-w-0">
+    <div class="text-[12.5px] font-semibold leading-tight truncate flex items-center gap-1">
+      {p.name}
+      {hasPref && <span title={`Voorkeur: ${p.preferences!.join(', ')}`} class="text-sun shrink-0"><Icon name="star" size={10} /></span>}
+      {showMedical && p.medical && <span title="Medische info zichtbaar" class="text-coral shrink-0"><Icon name="shield" size={10} /></span>}
+    </div>
+    <div class="text-[10.5px] text-ink-soft flex items-center gap-1.5 leading-tight mt-0.5">
+      <span>{p.age} jr</span>
+      <span class="w-0.5 h-0.5 rounded-full bg-mist"></span>
+      <span class="font-semibold" style={`color:${levelSwatch}`}>{levelShort}</span>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,95 @@
+---
+import Icon from './Icon.astro';
+import Logo from './Logo.astro';
+import Avatar from './Avatar.astro';
+import { branches, buildUrl } from '../data/context';
+import type { AppContext } from '../data/context';
+
+interface Props { ctx: AppContext; current: string }
+const { ctx, current } = Astro.props;
+
+const navItems = [
+  { id: 'dashboard', label: 'Dashboard', icon: 'dashboard', href: '/dashboard' },
+  { id: 'reizen', label: 'Reizen', icon: 'trips', href: '/reizen' },
+  { id: 'pools', label: 'Pool Builder', icon: 'pools', href: '/pools' },
+  { id: 'deelnemers', label: 'Deelnemers', icon: 'users', href: '/deelnemers' },
+  { id: 'medewerkers', label: 'Medewerkers', icon: 'staff', href: '/medewerkers' },
+  { id: 'instellingen', label: 'Instellingen', icon: 'settings', href: '/instellingen' },
+] as const;
+
+const allowed = navItems.filter((n) => ctx.role.visibleNavItems.includes(n.id));
+
+const branchIconMap: Record<string, any> = {
+  surf: 'wave', ski: 'snowflake', school: 'school', corporate: 'briefcase',
+};
+---
+<aside class="hidden lg:flex fixed inset-y-0 left-0 w-[260px] flex-col bg-navy text-white z-30">
+  <div class="px-5 pt-5 pb-4">
+    <a href={buildUrl('/dashboard', ctx.branchId, ctx.roleId)} class="block">
+      <Logo variant="light" />
+    </a>
+  </div>
+
+  <div class="px-4 pt-2">
+    <div class="px-2 mb-2 text-[10px] uppercase tracking-[0.08em] text-white/35 font-semibold">Branche</div>
+    <div class="space-y-0.5">
+      {branches.map((b) => {
+        const active = b.id === ctx.branchId;
+        return (
+          <a href={buildUrl(`/${current}`, b.id, ctx.roleId)} class={`nav-item ${active ? 'is-active' : ''}`}>
+            <Icon name={branchIconMap[b.id]} size={16} stroke={1.7} class={active ? 'text-flow' : 'opacity-70'} />
+            <span class="flex-1 truncate">{b.name}</span>
+            {active && <span class="w-1.5 h-1.5 rounded-full bg-flow pulse-ring"></span>}
+          </a>
+        );
+      })}
+    </div>
+  </div>
+
+  <div class="px-4 pt-7 flex-1 overflow-y-auto scrollbar-thin">
+    <div class="px-2 mb-2 text-[10px] uppercase tracking-[0.08em] text-white/35 font-semibold">Menu</div>
+    <nav class="space-y-0.5">
+      {allowed.map((item) => {
+        const isActive = current === item.id;
+        return (
+          <a href={buildUrl(item.href, ctx.branchId, ctx.roleId)} class={`nav-item ${isActive ? 'is-active' : ''}`}>
+            <Icon name={item.icon} size={16} stroke={1.7} class={isActive ? '' : 'opacity-70'} />
+            <span class="flex-1">{item.label}</span>
+          </a>
+        );
+      })}
+    </nav>
+
+    {ctx.role.permissions.canEditTrips && (
+      <button data-modal="modal-new-trip" class="mt-5 w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-white/[0.07] hover:bg-white/[0.12] text-white text-[13px] font-medium transition-colors border border-white/[0.06]">
+        <Icon name="plus" size={14} />
+        Nieuwe reis
+      </button>
+    )}
+  </div>
+
+  <div class="p-3 border-t border-white/[0.06]">
+    <div class="flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-white/[0.04] cursor-pointer">
+      <Avatar src={ctx.role.avatar} initials={ctx.role.initials} size="lg" />
+      <div class="flex-1 min-w-0">
+        <div class="text-[13px] font-semibold leading-tight truncate">{ctx.role.name}</div>
+        <div class="text-[11px] text-white/55 leading-tight truncate">{ctx.role.email}</div>
+      </div>
+      <a href="/" title="Uitloggen" class="btn-icon text-white/55 hover:text-white hover:bg-white/[0.08]">
+        <Icon name="logout" size={15} />
+      </a>
+    </div>
+  </div>
+</aside>
+
+<nav class="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-navy text-white border-t border-white/10 px-1 py-1.5 flex justify-around">
+  {allowed.slice(0, 5).map((item) => {
+    const isActive = current === item.id;
+    return (
+      <a href={buildUrl(item.href, ctx.branchId, ctx.roleId)} class={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg ${isActive ? 'text-flow' : 'text-white/60'}`}>
+        <Icon name={item.icon} size={18} stroke={1.7} />
+        <span class="text-[10px] font-medium">{item.label}</span>
+      </a>
+    );
+  })}
+</nav>

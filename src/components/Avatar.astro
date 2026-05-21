@@ -1,0 +1,35 @@
+---
+interface Props {
+  src?: string;
+  initials: string;
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+  color?: string;
+  ring?: 'none' | 'white' | 'flow';
+  class?: string;
+  title?: string;
+}
+const { src, initials, size = 'md', color, ring = 'none', class: className = '', title } = Astro.props;
+
+const sizeMap: Record<string, { w: number; font: number }> = {
+  xs: { w: 22, font: 9 },
+  sm: { w: 28, font: 10.5 },
+  md: { w: 32, font: 11.5 },
+  lg: { w: 36, font: 12 },
+  xl: { w: 48, font: 14 },
+};
+const s = sizeMap[size];
+const ringClass = ring === 'white' ? 'ring-2 ring-white' : ring === 'flow' ? 'ring-2 ring-flow ring-offset-2 ring-offset-bg' : '';
+const bg = color ? `${color}1A` : '';
+const text = color ? color : '';
+---
+<span
+  class={`avatar inline-flex items-center justify-center rounded-full font-semibold shrink-0 overflow-hidden ${ringClass} ${className}`}
+  style={`width:${s.w}px; height:${s.w}px; font-size:${s.font}px; ${src ? '' : `background:${bg}; color:${text};`}`}
+  title={title}
+>
+  {src ? (
+    <img src={src} alt={initials} class="w-full h-full object-cover" loading="lazy" />
+  ) : (
+    initials
+  )}
+</span>
